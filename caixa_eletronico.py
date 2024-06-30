@@ -1,0 +1,50 @@
+from flask import Flask, request, jsonify
+
+app = Flask(__name__)
+
+
+def calcular_cedulas(valor):
+    cedulas = [100, 50, 20, 10, 5, 2]
+    resultado = {str(cedula): 0 for cedula in cedulas}
+
+    for cedula in cedulas:
+        if valor >= cedula:
+            quantidade = valor // cedula
+            resultado[str(cedula)] = quantidade
+            valor %= cedula
+
+    return resultado
+
+
+@app.route('/api/saque', methods=['POST'])
+def saque():
+    dados = request.get_json()
+
+   
+    if not dados:
+        return jsonify({'error': 'Nenhum dado recebido.'}), 400
+
+    
+    if 'valor' not in dados:
+        return jsonify({'error': 'Campo "valor" não encontrado no JSON.'}), 400
+
+    valor = dados['valor']
+
+    
+    if isinstance(valor, str):
+        return jsonify({'error': 'Valor inválido. Isso é uma string, não é um valor numérico.'}), 400
+
+    
+    if not isinstance(valor, int):
+        return jsonify({'error': 'Valor inválido. O campo "valor" deve ser um número inteiro.'}), 400
+
+  
+    if valor <= 0:
+        return jsonify({'error': 'Valor inválido. Insira um número inteiro positivo.'}), 400
+
+    resultado = calcular_cedulas(valor)
+    
+    return jsonify(resultado)
+
+if __name__ == '__main__':
+    app.run(debug=True)
